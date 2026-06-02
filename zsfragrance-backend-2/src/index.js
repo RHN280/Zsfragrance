@@ -9,8 +9,15 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ─── Middleware ───────────────────────────────────────────
-app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
-app.use(express.json());
+app.use(cors({ 
+  origin: [
+    process.env.FRONTEND_URL,
+    'https://admirable-begonia-316339.netlify.app',
+    /\.netlify\.app$/,
+    /\.onrender\.com$/,
+  ].filter(Boolean),
+  credentials: true
+}));app.use(express.json());
 
 // ─── Health check ─────────────────────────────────────────
 app.get('/health', (req, res) => {
