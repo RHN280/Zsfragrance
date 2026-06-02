@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZS Fragrance — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--white:#fff;--surface:#f5f3f0;
+  --border:#e8e4e0;--text:#1a1a1a;--muted:#9e9a95;
+  --font-display:'Cormorant Garamond',serif;
+  --font-body:'DM Sans',sans-serif;
+}
+body{font-family:var(--font-body);font-weight:300;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Login ── */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
+.login-box{background:var(--white);border:1px solid var(--border);padding:48px;width:360px}
+.login-box h1{font-family:var(--font-display);font-size:24px;font-weight:300;margin-bottom:4px}
+.login-box p{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:32px}
+.login-box label{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.login-box input{width:100%;border:none;border-bottom:1px solid var(--border);background:transparent;padding:8px 0;font-size:13px;font-family:var(--font-body);outline:none;color:var(--text);margin-bottom:24px}
+.login-box input:focus{border-bottom-color:var(--text)}
+.btn-primary{width:100%;padding:12px;background:var(--text);color:var(--white);border:none;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;font-family:var(--font-body);font-weight:300;transition:background 0.2s}
+.btn-primary:hover{background:#333}
+.login-error{font-size:11px;color:#c0392b;margin-top:12px;display:none}
+
+/* ── Layout ── */
+#app{display:none;min-height:100vh;flex-direction:column}
+header{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-logo{font-family:var(--font-display);font-size:16px;letter-spacing:0.25em;text-transform:uppercase}
+.header-nav{display:flex;gap:0}
+.nav-btn{padding:0 20px;height:56px;background:none;border:none;border-bottom:2px solid transparent;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;font-family:var(--font-body);color:var(--muted);transition:all 0.2s}
+.nav-btn.active{color:var(--text);border-bottom-color:var(--text)}
+.nav-btn:hover{color:var(--text)}
+.header-right{display:flex;align-items:center;gap:16px}
+.logout-btn{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;background:none;border:none;cursor:pointer;color:var(--muted);font-family:var(--font-body)}
+.logout-btn:hover{color:var(--text)}
+
+main{flex:1;padding:32px}
+.container{max-width:1300px;margin:0 auto}
+
+/* ── Stats ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.stat-card{background:var(--white);border:1px solid var(--border);padding:24px}
+.stat-label{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.stat-value{font-family:var(--font-display);font-size:32px;font-weight:300;color:var(--text)}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* ── Section header ── */
+.section-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.section-title{font-family:var(--font-display);font-size:22px;font-weight:300}
+.section-count{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted)}
+
+/* ── Table ── */
+.table-wrap{background:var(--white);border:1px solid var(--border);overflow:hidden;margin-bottom:32px}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:1px solid var(--border)}
+th{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);padding:12px 16px;text-align:left;font-weight:400;background:var(--surface)}
+td{padding:14px 16px;font-size:12px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface)}
+.order-id{font-family:var(--font-display);font-size:14px;font-weight:400}
+.customer-name{font-weight:400}
+.amount{font-family:var(--font-display);font-size:15px}
+
+/* ── Status badges ── */
+.badge{display:inline-block;padding:2px 8px;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;border:1px solid}
+.badge-pending  {border-color:#e8c96e;color:#8a6e0a;background:#fffdf0}
+.badge-confirmed{border-color:#a8d5b5;color:#1a6b35;background:#f0faf3}
+.badge-preparing{border-color:#9e9a95;color:#5a5650;background:var(--surface)}
+.badge-shipped  {border-color:#1a1a1a;color:#1a1a1a;background:var(--white)}
+.badge-delivered{border-color:#4a9a6a;color:#fff;background:#4a9a6a}
+.badge-cancelled{border-color:#c0392b;color:#c0392b;background:#fef5f5}
+
+/* ── Status select ── */
+select.status-select{border:none;border-bottom:1px solid var(--border);background:transparent;font-size:11px;font-family:var(--font-body);padding:2px 0;outline:none;cursor:pointer;color:var(--text)}
+
+/* ── Product table ── */
+.stock-input{width:56px;border:none;border-bottom:1px solid var(--border);background:transparent;font-size:12px;text-align:center;font-family:var(--font-body);padding:2px 4px;outline:none}
+.stock-input:focus{border-bottom-color:var(--text)}
+.stock-save{padding:3px 10px;background:var(--text);color:var(--white);border:none;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;font-family:var(--font-body);margin-left:6px}
+.stock-low{color:#c0392b;font-weight:400}
+.stock-ok{color:#4a9a6a}
+.stock-zero{color:#c0392b;font-weight:700}
+.toggle-active{width:36px;height:20px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;position:relative;transition:all 0.2s}
+.toggle-active.on{background:var(--text);border-color:var(--text)}
+.toggle-active::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform 0.2s}
+.toggle-active.on::after{transform:translateX(16px)}
+
+/* ── Order detail panel ── */
+.order-detail{background:var(--white);border:1px solid var(--border);padding:24px;margin-bottom:24px;display:none}
+.order-detail.open{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:16px}
+.detail-block label{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.detail-block p{font-size:13px;color:var(--text);line-height:1.6}
+.detail-items{margin-top:16px;border-top:1px solid var(--border);padding-top:16px}
+.detail-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.detail-item:last-child{border-bottom:none}
+.detail-total{display:flex;justify-content:space-between;padding-top:12px;font-family:var(--font-display);font-size:20px;font-weight:300}
+
+/* ── Filters ── */
+.filters{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-chip{padding:4px 14px;border:1px solid var(--border);background:var(--white);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;font-family:var(--font-body);color:var(--muted);transition:all 0.2s}
+.filter-chip.active{background:var(--text);border-color:var(--text);color:var(--white)}
+.search-filter{border:none;border-bottom:1px solid var(--border);background:transparent;font-size:11px;padding:4px 0;width:200px;outline:none;font-family:var(--font-body)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--white);padding:10px 20px;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;opacity:0;transform:translateY(8px);transition:all 0.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ── Tabs content ── */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ── Loading ── */
+.loading{text-align:center;padding:48px;color:var(--muted);font-size:12px;letter-spacing:0.15em;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>ZS Fragrance</h1>
+    <p>Tableau de bord</p>
+    <label>Mot de passe</label>
+    <input type="password" id="passwordInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn-primary" onclick="login()">Accéder</button>
+    <p class="login-error" id="loginError">Mot de passe incorrect.</p>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app" style="display:none;flex-direction:column">
+  <header>
+    <div class="header-logo">ZS Fragrance</div>
+    <nav class="header-nav">
+      <button class="nav-btn active" onclick="showTab('orders',this)">Commandes</button>
+      <button class="nav-btn" onclick="showTab('products',this)">Catalogue & Stock</button>
+    </nav>
+    <div class="header-right">
+      <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted)" id="lastRefresh"></span>
+      <button class="logout-btn" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- Stats -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-label">Commandes total</div><div class="stat-value" id="statTotal">—</div></div>
+        <div class="stat-card"><div class="stat-label">En attente</div><div class="stat-value" id="statPending">—</div></div>
+        <div class="stat-card"><div class="stat-label">Chiffre d'affaires</div><div class="stat-value" id="statRevenue">—</div><div class="stat-sub">CHF</div></div>
+        <div class="stat-card"><div class="stat-label">Stock faible</div><div class="stat-value" id="statLowStock">—</div><div class="stat-sub">produits ≤ 1</div></div>
+      </div>
+
+      <!-- Tab: Commandes -->
+      <div class="tab-content active" id="tab-orders">
+        <div class="section-header">
+          <h2 class="section-title">Commandes</h2>
+          <span class="section-count" id="ordersCount">—</span>
+        </div>
+
+        <div class="filters">
+          <button class="filter-chip active" onclick="filterOrders('all',this)">Toutes</button>
+          <button class="filter-chip" onclick="filterOrders('pending',this)">En attente</button>
+          <button class="filter-chip" onclick="filterOrders('confirmed',this)">Confirmées</button>
+          <button class="filter-chip" onclick="filterOrders('preparing',this)">En préparation</button>
+          <button class="filter-chip" onclick="filterOrders('shipped',this)">Expédiées</button>
+          <button class="filter-chip" onclick="filterOrders('delivered',this)">Livrées</button>
+          <input class="search-filter" id="orderSearch" placeholder="Rechercher un client..." oninput="renderOrders()">
+        </div>
+
+        <div class="table-wrap" id="ordersTable">
+          <div class="loading">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Tab: Produits -->
+      <div class="tab-content" id="tab-products">
+        <div class="section-header">
+          <h2 class="section-title">Catalogue & Stock</h2>
+          <span class="section-count" id="productsCount">—</span>
+        </div>
+
+        <div class="filters">
+          <input class="search-filter" id="productSearch" placeholder="Rechercher un produit..." oninput="renderProducts()" style="width:260px">
+        </div>
+
+        <div class="table-wrap" id="productsTable">
+          <div class="loading">Chargement...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:3001';
+let token = '';
+let allOrders = [];
+let allProducts = [];
+let activeOrderFilter = 'all';
+let openOrderId = null;
+
+// ── Auth ──────────────────────────────────────────────────
+function login() {
+  const pwd = document.getElementById('passwordInput').value;
+  if (!pwd) return;
+  token = pwd;
+  checkAuth();
+}
+
+async function checkAuth() {
+  try {
+    const r = await fetch(`${API}/admin/orders?limit=1`, {
+      headers: { 'x-admin-token': token }
+    });
+    if (r.status === 401) {
+      document.getElementById('loginError').style.display = 'block';
+      token = '';
+      return;
+    }
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    loadAll();
+    setInterval(loadAll, 30000);
+  } catch {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = 'Impossible de contacter le serveur.';
+  }
+}
+
+function logout() {
+  token = '';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+// ── Data ──────────────────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadOrders(), loadProducts()]);
+  updateStats();
+  document.getElementById('lastRefresh').textContent =
+    'Mis à jour ' + new Date().toLocaleTimeString('fr-CH', {hour:'2-digit',minute:'2-digit'});
+}
+
+async function loadOrders() {
+  try {
+    const r = await fetch(`${API}/admin/orders`, { headers: {'x-admin-token': token} });
+    allOrders = await r.json();
+    renderOrders();
+  } catch { allOrders = []; }
+}
+
+async function loadProducts() {
+  try {
+    const r = await fetch(`${API}/admin/products`, { headers: {'x-admin-token': token} });
+    allProducts = await r.json();
+    renderProducts();
+  } catch { allProducts = []; }
+}
+
+// ── Stats ─────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('statTotal').textContent = allOrders.length;
+  document.getElementById('statPending').textContent = allOrders.filter(o => o.status === 'pending').length;
+  const revenue = allOrders
+    .filter(o => o.status !== 'cancelled')
+    .reduce((a, o) => a + Number(o.total), 0);
+  document.getElementById('statRevenue').textContent = revenue.toLocaleString('fr-CH');
+  document.getElementById('statLowStock').textContent = allProducts.filter(p => p.stock <= 1).length;
+}
+
+// ── Tab switch ────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Orders ────────────────────────────────────────────────
+function filterOrders(status, btn) {
+  activeOrderFilter = status;
+  document.querySelectorAll('#tab-orders .filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrders();
+}
+
+function renderOrders() {
+  const search = (document.getElementById('orderSearch')?.value || '').toLowerCase();
+  let orders = allOrders;
+
+  if (activeOrderFilter !== 'all') {
+    orders = orders.filter(o => o.status === activeOrderFilter);
+  }
+  if (search) {
+    orders = orders.filter(o =>
+      `${o.customer?.firstName} ${o.customer?.lastName} ${o.customer?.email} ${o.id}`
+        .toLowerCase().includes(search)
+    );
+  }
+
+  document.getElementById('ordersCount').textContent = orders.length + ' commande' + (orders.length > 1 ? 's' : '');
+
+  if (!orders.length) {
+    document.getElementById('ordersTable').innerHTML = '<div class="loading">Aucune commande</div>';
+    return;
+  }
+
+  const statusLabels = {
+    pending: 'En attente', confirmed: 'Confirmée', preparing: 'En préparation',
+    shipped: 'Expédiée', delivered: 'Livrée', cancelled: 'Annulée'
+  };
+  const deliveryLabels = {
+    pickup: 'Retrait Genève', switzerland: 'Suisse', france: 'France', europe: 'Europe'
+  };
+
+  const rows = orders.map(o => `
+    <tr style="cursor:pointer" onclick="toggleOrder('${o.id}')">
+      <td><span class="order-id">${o.id}</span></td>
+      <td>
+        <span class="customer-name">${o.customer?.firstName} ${o.customer?.lastName}</span><br>
+        <span style="font-size:11px;color:var(--muted)">${o.customer?.email}</span>
+      </td>
+      <td>${deliveryLabels[o.delivery?.mode] || o.delivery?.mode}</td>
+      <td style="text-transform:capitalize">${(o.payment?.method || '').replace('_',' ')}</td>
+      <td><span class="amount">${Number(o.total).toLocaleString('fr-CH')} CHF</span></td>
+      <td>
+        <select class="status-select" onclick="event.stopPropagation()" onchange="updateStatus('${o.id}',this.value)">
+          ${['pending','confirmed','preparing','shipped','delivered','cancelled']
+            .map(s => `<option value="${s}" ${o.status===s?'selected':''}>${statusLabels[s]}</option>`).join('')}
+        </select>
+      </td>
+      <td style="font-size:11px;color:var(--muted)">${new Date(o.created_at).toLocaleDateString('fr-CH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+    </tr>
+    <tr id="detail-${o.id}" style="display:none">
+      <td colspan="7" style="padding:0">
+        <div style="padding:20px 24px;background:var(--surface);border-top:1px solid var(--border)">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-bottom:16px">
+            <div>
+              <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Client</div>
+              <div style="font-size:13px;line-height:1.7">${o.customer?.firstName} ${o.customer?.lastName}<br>${o.customer?.email}<br>${o.customer?.phone}</div>
+            </div>
+            <div>
+              <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Livraison</div>
+              <div style="font-size:13px;line-height:1.7">
+                ${deliveryLabels[o.delivery?.mode] || ''}<br>
+                ${o.delivery?.address ? `${o.delivery.address.street}<br>${o.delivery.address.zip} ${o.delivery.address.city}<br>${o.delivery.address.country}` : 'Rue de Rive, Genève'}
+              </div>
+            </div>
+            <div>
+              <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Numéro de suivi</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input id="tracking-${o.id}" type="text" placeholder="Ex: CHE123456789" value="${o.tracking_number||''}"
+                  style="border:none;border-bottom:1px solid var(--border);background:transparent;font-size:12px;padding:2px 0;outline:none;font-family:var(--font-body);width:180px">
+                <button class="stock-save" onclick="saveTracking('${o.id}')">Enregistrer</button>
+              </div>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:16px">
+            ${(o.items||[]).map(i => `
+              <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+                <div>
+                  <span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">${i.brand}</span><br>
+                  <strong style="font-size:14px;font-family:var(--font-display);font-weight:400">${i.name}</strong>
+                  — ${i.volume} × ${i.quantity}
+                </div>
+                <span style="font-family:var(--font-display);font-size:15px">${i.price * i.quantity} CHF</span>
+              </div>`).join('')}
+            <div style="display:flex;justify-content:space-between;padding-top:12px">
+              <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted)">
+                Livraison : ${Number(o.shipping_cost)||0} CHF
+              </span>
+              <span style="font-family:var(--font-display);font-size:22px;font-weight:300">
+                ${Number(o.total).toLocaleString('fr-CH')} CHF
+              </span>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  document.getElementById('ordersTable').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Référence</th><th>Client</th><th>Livraison</th>
+        <th>Paiement</th><th>Montant</th><th>Statut</th><th>Date</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function toggleOrder(id) {
+  const row = document.getElementById('detail-' + id);
+  if (!row) return;
+  const isOpen = row.style.display !== 'none';
+  document.querySelectorAll('[id^="detail-"]').forEach(r => r.style.display = 'none');
+  if (!isOpen) row.style.display = 'table-row';
+}
+
+async function updateStatus(id, status) {
+  try {
+    await fetch(`${API}/admin/orders/${id}`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','x-admin-token':token},
+      body: JSON.stringify({ status })
+    });
+    const order = allOrders.find(o => o.id === id);
+    if (order) order.status = status;
+    updateStats();
+    toast('Statut mis à jour');
+  } catch { toast('Erreur lors de la mise à jour'); }
+}
+
+async function saveTracking(id) {
+  const val = document.getElementById('tracking-' + id)?.value;
+  try {
+    await fetch(`${API}/admin/orders/${id}`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','x-admin-token':token},
+      body: JSON.stringify({ trackingNumber: val })
+    });
+    toast('Numéro de suivi enregistré');
+  } catch { toast('Erreur'); }
+}
+
+// ── Products ──────────────────────────────────────────────
+function renderProducts() {
+  const search = (document.getElementById('productSearch')?.value || '').toLowerCase();
+  let products = allProducts;
+  if (search) {
+    products = products.filter(p =>
+      p.name.toLowerCase().includes(search) || p.brand.toLowerCase().includes(search)
+    );
+  }
+
+  document.getElementById('productsCount').textContent = products.length + ' produit' + (products.length > 1 ? 's' : '');
+
+  if (!products.length) {
+    document.getElementById('productsTable').innerHTML = '<div class="loading">Aucun produit</div>';
+    return;
+  }
+
+  const rows = products.map(p => {
+    const stockClass = p.stock === 0 ? 'stock-zero' : p.stock <= 1 ? 'stock-low' : 'stock-ok';
+    return `
+      <tr>
+        <td>
+          <span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;display:block">${p.brand}</span>
+          <strong style="font-family:var(--font-display);font-size:15px;font-weight:400">${p.name}</strong>
+        </td>
+        <td style="color:var(--muted);font-size:11px">${p.volume || '—'}</td>
+        <td style="font-family:var(--font-display);font-size:15px">${Number(p.price).toLocaleString('fr-CH')} CHF</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input class="stock-input ${stockClass}" id="stock-${p.id}" type="number" min="0" value="${p.stock}" onkeydown="if(event.key==='Enter')saveStock('${p.id}')">
+            <button class="stock-save" onclick="saveStock('${p.id}')">OK</button>
+          </div>
+        </td>
+        <td>
+          <button class="toggle-active ${p.active?'on':''}" id="toggle-${p.id}" onclick="toggleActive('${p.id}',this)" title="${p.active?'Actif — cliquer pour désactiver':'Inactif — cliquer pour activer'}"></button>
+        </td>
+        <td>
+          ${(p.flags||[]).map(f => {
+            const labels = {no_box:'Sans boîte',tester:'Testeur',spray_limit:'Spray limité'};
+            return `<span style="font-size:8px;border:1px solid var(--border);padding:1px 5px;color:var(--muted);margin-right:4px">${labels[f]||f}</span>`;
+          }).join('')}
+          ${p.is_new ? '<span style="font-size:8px;border:1px solid var(--text);padding:1px 5px;color:var(--text)">Nouveau</span>' : ''}
+        </td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('productsTable').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Produit</th><th>Volume</th><th>Prix</th>
+        <th>Stock</th><th>Actif</th><th>Badges</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function saveStock(id) {
+  const val = parseInt(document.getElementById('stock-' + id)?.value);
+  if (isNaN(val) || val < 0) return;
+  try {
+    await fetch(`${API}/admin/products/${id}/stock`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json','x-admin-token':token},
+      body: JSON.stringify({ stock: val })
+    });
+    const p = allProducts.find(x => x.id === id);
+    if (p) p.stock = val;
+    updateStats();
+    toast('Stock mis à jour');
+    renderProducts();
+  } catch { toast('Erreur'); }
+}
+
+async function toggleActive(id, btn) {
+  const p = allProducts.find(x => x.id === id);
+  if (!p) return;
+  const newActive = !p.active;
+  try {
+    await fetch(`${API}/admin/products/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json','x-admin-token':token},
+      body: JSON.stringify({ active: newActive })
+    });
+    p.active = newActive;
+    btn.classList.toggle('on', newActive);
+    toast(newActive ? 'Produit activé' : 'Produit désactivé');
+  } catch { toast('Erreur'); }
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+</script>
+</body>
+</html>
